@@ -78,7 +78,7 @@ async def group_bot(payload: dict, x_api_key: str = Header(None)):
         print(payload)
 
         message = payload["message"]
-        group_id = payload["group_id"]
+        ##group_id = payload["group_id"]
         sender = payload["sender"]
 
         if BOT_NAME.lower() not in message.lower():
@@ -89,11 +89,9 @@ async def group_bot(payload: dict, x_api_key: str = Header(None)):
 
         if "split" in lower or "paid" in lower:
             expense = parse_expense(clean, sender)
-            save_expense(group_id, expense)
             response = f"Added ₹{expense['amount']} for {expense['description']}"
 
         elif "total" in lower or "spent" in lower:
-            total = get_group_total(group_id)
             response = f"Total trip spend so far: ₹{total}"
 
         else:
