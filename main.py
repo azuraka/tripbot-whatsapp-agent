@@ -100,7 +100,7 @@ async def group_bot(payload: dict, x_api_key: str = Header(None)):
             response = answer_travel_query(clean)
 
         print("GROUP RESPONSE:", response)
-        return {"response": response}
+        return response
 
     except Exception as e:
         print("GROUP BOT ERROR:", str(e))
