@@ -11,13 +11,6 @@ app = FastAPI()
 BOT_NAME = "@TripBot"
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "tripbot123")
 
-
-class WebhookPayload(BaseModel):
-    message: str
-    group_id: str
-    sender: str
-
-
 @app.get("/webhook")
 def verify_webhook(
     hub_mode: str = Query(None, alias="hub.mode"),
@@ -30,28 +23,45 @@ def verify_webhook(
 
 
 @app.post("/webhook")
-async def whatsapp_webhook(payload: WebhookPayload):
-    message = payload.message
-    group_id = payload.group_id
-    sender = payload.sender
+async def whatsapp_webhook(payload: dict):
+    try:
+        print("POST WEBHOOK HIT")
+        print(payload)
 
-    if BOT_NAME.lower() not in message.lower():
-        return {"status": "ignored"}
+        entry = payload["entry"][0]
+        changes = entry["changes"][0]
+        value = changes["value"]
 
-    clean = message.replace(BOT_NAME, "").strip()
-    lower = clean.lower()
+        if "messages" not in value:
+            return {"status": "no_message"}
 
-    if "split" in lower or "paid" in lower:
-        expense = parse_expense(clean, sender)
-        save_expense(group_id, expense)
-        response = f"Added expense: ₹{expense['amount']} for {expense['description']}"
+        message_obj = value["messages"][0]
+        sender = message_obj["from"]
+        message = message_obj["text"]["body"]
 
-    elif "total" in lower or "spent" in lower:
-        total = get_group_total(group_id)
-        response = f"Total trip spend so far: ₹{total}"
+        group_id = value.get("metadata", {}).get("phone_number_id", "default")
 
-    else:
-        response = answer_travel_query(clean)
+        if BOT_NAME.lower() not in message.lower():
+            return {"status": "ignored"}
 
-    send_whatsapp_message(group_id, response)
-    return {"status": "ok"}
+        clean = message.replace(BOT_NAME, "").strip()
+        lower = clean.lower()
+
+        if "split" in lower or "paid" in lower:
+            expense = parse_expense(clean, sender)
+            save_expense(group_id, expense)
+            response = f"Added ₹{expense['amount']} for {expense['description']}"
+
+        elif "total" in lower or "spent" in lower:
+            total = get_group_total(group_id)
+            response = f"Total trip spend so far: ₹{total}"
+
+        else:
+            response = answer_travel_query(clean)
+
+        print("BOT RESPONSE:", response)
+        return {"status": "ok"}
+
+    except Exception as e:
+        print("ERROR:", str(e))
+        return {"error": str(e)}
