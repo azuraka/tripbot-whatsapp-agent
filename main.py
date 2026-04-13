@@ -71,8 +71,8 @@ async def whatsapp_webhook(payload: dict):
 @app.post("/group-bot")
 async def group_bot(payload: dict, x_api_key: str = Header(None)):
     try:
-        if x_api_key != MACRO_SECRET:
-            raise HTTPException(status_code=401, detail="Unauthorized")
+        #if x_api_key != MACRO_SECRET:
+        #    raise HTTPException(status_code=401, detail="Unauthorized")
 
         print("GROUP BOT HIT")
         print(payload)
