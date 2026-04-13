@@ -59,6 +59,7 @@ async def whatsapp_webhook(payload: dict):
         else:
             response = answer_travel_query(clean)
 
+        send_whatsapp_message(sender, response)
         print("BOT RESPONSE:", response)
         return {"status": "ok"}
 
